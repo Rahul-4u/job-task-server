@@ -6,6 +6,15 @@ require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://inspiring-malabi-a5c212.netlify.app/",
+    ],
+    credentials: true,
+  })
+);
 
 app.use(cors());
 app.use(express.json());
@@ -16,7 +25,7 @@ const client = new MongoClient(uri);
 
 async function run() {
   try {
-    await client.connect();
+    // await client.connect();
     const db = client.db("taskManager");
     const tasksCollection = db.collection("tasks");
 
