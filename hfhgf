@@ -1,0 +1,62 @@
+// Backend (Express.js + MongoDB)
+const express = require("express");
+const cors = require("cors");
+const { MongoClient, ObjectId } = require("mongodb");
+require("dotenv").config();
+
+const app = express();
+const port = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
+
+const uri =
+  "mongodb+srv://job-task-todo:LVIHhtonuAafMYJd@cluster0.zs3l2.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const client = new MongoClient(uri);
+
+async function run() {
+  try {
+    await client.connect();
+    const db = client.db("taskManager");
+    const tasksCollection = db.collection("tasks");
+
+    // Add a task
+    app.post("/tasks", async (req, res) => {
+      const task = req.body;
+      task.timestamp = new Date();
+      const result = await tasksCollection.insertOne(task);
+      res.json(result);
+    });
+
+    // Get all tasks
+    app.get("/tasks", async (req, res) => {
+      const tasks = await tasksCollection.find({}).toArray();
+      res.json(tasks);
+    });
+
+    // Update a task
+    app.put("/tasks/:id", async (req, res) => {
+      const { id } = req.params;
+      const updateData = req.body;
+      const result = await tasksCollection.updateOne(
+        { _id: new ObjectId(id) },
+        { $set: updateData }
+      );
+      res.json(result);
+    });
+
+    // Delete a task
+    app.delete("/tasks/:id", async (req, res) => {
+      const { id } = req.params;
+      const result = await tasksCollection.deleteOne({ _id: new ObjectId(id) });
+      res.json(result);
+    });
+  } finally {
+  }
+}
+
+run().catch(console.dir);
+
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
